@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Advisor AI Chatbot</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#4f46e5',
+                        'primary-dark': '#4338ca',
+                        'secondary': '#facc15',
+                        'background': '#f9fafb',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+
+    <style>
+        #chat-history {
+            max-height: 80vh;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+        #chat-history::-webkit-scrollbar {
+            width: 8px;
+        }
+        #chat-history::-webkit-scrollbar-thumb {
+            background-color: #d1d5db;
+            border-radius: 4px;
+        }
+        .typing-indicator span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            margin: 0 1px;
+            background-color: #9ca3af;
+            border-radius: 50%;
+            opacity: 0;
+            animation: bounce 1s infinite;
+        }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes bounce {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+            30% { transform: translateY(-6px); opacity: 1; }
+        }
+    </style>
+</head>
+
+<body class="bg-background flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-2xl bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col h-[90vh]">
+
+        <!-- HEADER -->
+        <header class="p-4 bg-primary text-white shadow-lg flex items-center rounded-t-xl">
+            <img 
+                src="WhatsApp%20Image%202025-10-18%20at%2023.37.11_210f634b.jpg"
+                onerror="this.onerror=null; this.src='https://via.placeholder.com/50?text=Logo';"
+                width="50"
+                alt="Creddost Loan Company Logo"
+                class="h-12 w-12 mr-4 rounded-full object-cover border-2 border-white shadow-sm"
+            >
+
+            <div>
+                <h1 class="text-2xl font-bold leading-tight">Creddost Loan Advisor</h1>
+                <p class="text-xs text-indigo-200 font-medium">Your Professional Financial Assistant</p>
+            </div>
+        </header>
+
+        <!-- CHAT HISTORY -->
+        <div id="chat-history" class="flex-grow p-4 space-y-4">
+            <div class="flex justify-start">
+                <div class="bg-gray-200 text-gray-800 p-3 rounded-tr-xl rounded-b-xl max-w-xs md:max-w-md shadow-md">
+                    <p class="font-semibold text-primary-dark">Creddost Advisor</p>
+                    <p>Hello! I am your senior loan consultant at Creddost. I can assist you with loan and financial queries.</p>
+                </div>
+            </div>
+
+            <!-- Typing indicator -->
+            <div id="typing-indicator-container" class="hidden flex justify-start">
+                <div class="typing-indicator bg-gray-200 p-3 rounded-full shadow-md">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- INPUT AREA -->
+        <div class="p-4 border-t border-gray-200 bg-gray-50">
+            <div class="flex space-x-3">
+                <input 
+                    type="text" 
+                    id="user-input" 
+                    placeholder="Type your financial query here..."
+                    class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary shadow-inner"
+                    onkeydown="if(event.key === 'Enter') sendMessage()"
+                >
+
+                <button 
+                    id="send-button" 
+                    onclick="sendMessage()"
+                    class="px-6 py-3 bg-primary text-white font-semibold rounded-lg shadow-lg hover:bg-primary-dark transition duration-300 flex items-center"
+                >
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                    </svg>
+                    Send
+                </button>
+            </div>
+        </div>
+    </div>
+
+<script>
+
+    /* 🔑 INSERT YOUR GEMINI API KEY HERE */
+    const apiKey = "";
+
+    /* FIXED API URL */
+    const API_URL = https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey};
+
+    const chatHistory = [];
+    const chatHistoryDiv = document.getElementById("chat-history");
+    const userInput = document.getElementById("user-input");
+    const sendButton = document.getElementById("send-button");
+    const typingIndicatorContainer = document.getElementById("typing-indicator-container");
+
+    /* SYSTEM PROMPT */
+    const systemPrompt = You are 'Creddost Advisor', a Senior Financial Consultant...;
+
+
+    /* CREATE MESSAGE BUBBLE */
+    function createMessageElement(text, role) {
+        const isUser = role === "user";
+        const alignment = isUser ? "justify-end" : "justify-start";
+        const bgColor = isUser ? "bg-primary" : "bg-gray-200";
+        const textColor = isUser ? "text-white" : "text-gray-800";
+        const borderRadius = isUser ? "rounded-tl-xl rounded-b-xl" : "rounded-tr-xl rounded-b-xl";
+
+        const messageDiv = document.createElement("div");
+        messageDiv.className = flex ${alignment};
+        messageDiv.innerHTML = `
+            <div class="${bgColor} ${textColor} p-3 ${borderRadius} max-w-xs md:max-w-md shadow-md break-words whitespace-pre-wrap">
+                ${!isUser ? '<p class="font-semibold text-primary-dark mb-1 text-xs uppercase tracking-wider">Creddost Advisor</p>' : ''}
+                ${text}
+            </div>
+        `;
+        return messageDiv;
+    }
+
+    function scrollToBottom() {
+        chatHistoryDiv.scrollTop = chatHistoryDiv.scrollHeight;
+    }
+
+    /* CALL GEMINI API */
+    async function fetchAIResponse(userMessage) {
+        typingIndicatorContainer.classList.remove("hidden");
+
+        chatHistory.push({ role: "user", parts: [{ text: userMessage }] });
+
+        const payload = {
+            contents: chatHistory,
+            systemInstruction: { parts: [{ text: systemPrompt }] }
+        };
+
+        try {
+            const response = await fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+            typingIndicatorContainer.classList.add("hidden");
+
+            const aiText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            
+            if (aiText) {
+                chatHistory.push({ role: "model", parts: [{ text: aiText }] });
+                return aiText;
+            }
+
+            return "Sorry, I couldn’t understand. Please ask again.";
+
+        } catch (err) {
+            typingIndicatorContainer.classList.add("hidden");
+            return "Network error! Please try again.";
+        }
+    }
+
+    /* SEND MESSAGE */
+    async function sendMessage() {
+        const userMessage = userInput.value.trim();
+        if (!userMessage) return;
+
+        const userMsgElement = createMessageElement(userMessage, "user");
+        chatHistoryDiv.appendChild(userMsgElement);
+
+        userInput.value = "";
+        sendButton.disabled = true;
+        userInput.disabled = true;
+
+        const aiResponse = await fetchAIResponse(userMessage);
+
+        const aiMsgElement = createMessageElement(aiResponse, "model");
+        chatHistoryDiv.appendChild(aiMsgElement);
+
+        scrollToBottom();
+
+        sendButton.disabled = false;
+        userInput.disabled = false;
+        userInput.focus();
+    }
+
+    window.onload = () => userInput.focus();
+
+</script>
+
+</body>
+</html>
