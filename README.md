@@ -50,15 +50,6 @@ Open loan_advisor_chatbot.html in any code editor (VS Code, Notepad++, etc.).
 
 Find the script section at the bottom (around line 125).
 
-Paste your API key into the empty string:
-
-// BEFORE
-const apiKey = "";
-
-// AFTER
-const apiKey = "AIzaSyD-Your-Actual-API-Key-Here";
-
-
 3. Setup the Logo
 
 Ensure your logo image file is named exactly WhatsApp Image 2025-10-18 at 23.37.11_210f634b.jpg and is placed in the same folder as the HTML file.
@@ -103,4 +94,6 @@ Note: Ensure your API key is restricted to your website's domain in the Google C
 
 📄 License
 
-This project is open-source and available for personal or commercial use.
+This project is open-source and available for personal or commercial use
+
+
